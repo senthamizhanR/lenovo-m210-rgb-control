@@ -105,6 +105,12 @@ cable peaks at 23, while the wheel, logo and base arc run 120–160. Lit pixels 
 `target × (brightness/255)`, preserving the original falloff so the result still reads as a
 photograph rather than a flat fill.
 
+## Support
+
+If this saved you some trouble, you can [buy me a coffee](https://www.paypal.me/rsenthamizhan).
+There is a button for it in the app too. Entirely optional — the project is MIT licensed and stays
+that way.
+
 ## Disclaimer
 
 Not affiliated with, endorsed by, or supported by Lenovo. The protocol was reverse-engineered

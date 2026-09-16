@@ -219,6 +219,41 @@ def render_swatch(colour: tuple[int, int, int], size: int = 34) -> Image.Image:
     return image.resize((size, size), Image.Resampling.LANCZOS)
 
 
+def render_coffee_icon(colour: tuple[int, int, int], size: int = 16) -> Image.Image:
+    """A small coffee cup, drawn rather than taken from an emoji font.
+
+    Tk paints emoji in the widget's flat text colour, which collapses the cup
+    glyph into an indistinct blob, so the icon is drawn explicitly instead.
+    """
+    scale = 8
+    edge = size * scale
+    image = Image.new("RGBA", (edge, edge), (0, 0, 0, 0))
+    pen = ImageDraw.Draw(image)
+    ink = tuple(colour) + (255,)
+    stroke = max(2, int(edge * 0.07))
+
+    pen.rounded_rectangle(
+        (edge * 0.14, edge * 0.38, edge * 0.66, edge * 0.82),
+        radius=edge * 0.10, outline=ink, width=stroke,
+    )
+    pen.arc(  # handle
+        (edge * 0.58, edge * 0.46, edge * 0.92, edge * 0.70),
+        start=-70, end=70, fill=ink, width=stroke,
+    )
+    pen.line(  # saucer
+        (edge * 0.06, edge * 0.90, edge * 0.74, edge * 0.90),
+        fill=ink, width=stroke,
+    )
+    for offset in (0.24, 0.44):  # steam
+        x = edge * offset
+        pen.arc(
+            (x, edge * 0.04, x + edge * 0.18, edge * 0.28),
+            start=110, end=290, fill=ink, width=max(2, stroke - 2),
+        )
+
+    return image.resize((size, size), Image.Resampling.LANCZOS)
+
+
 def relative_luminance(colour: tuple[int, int, int]) -> float:
     def channel(value: int) -> float:
         srgb = value / 255.0

@@ -11,6 +11,7 @@ import re
 import sys
 import threading
 import tkinter as tk
+import webbrowser
 from tkinter import colorchooser
 
 import customtkinter as ctk
@@ -18,7 +19,7 @@ from PIL import Image
 
 import m210_device as device
 import photo_render
-from mouse_render import readable_text_colour, render_mouse
+from mouse_render import readable_text_colour, render_coffee_icon, render_mouse
 
 APP_NAME = "M210 RGB"
 APP_VERSION = "1.0.0"
@@ -31,6 +32,13 @@ TEXT = "#E8EAF0"
 MUTED = "#868E9E"
 OK = "#3ECF8E"
 BAD = "#F2555A"
+COFFEE = "#E8A33D"
+COFFEE_HOVER = "#2A2318"
+
+# A PayPal.me handle rather than the account's email address: it reaches the same
+# account without publishing a personal address in a public repository.
+PAYPAL_HANDLE = "rsenthamizhan"
+DONATE_URL = f"https://www.paypal.me/{PAYPAL_HANDLE}"
 
 # The drawn fallback is 2:3; a photo is fitted inside this box, whatever its aspect.
 PREVIEW_SIZE = (340, 460)
@@ -204,8 +212,27 @@ class App(ctk.CTk):
         self.message.grid(row=6, column=0, sticky="w", padx=pad)
 
         panel.grid_rowconfigure(7, weight=1)
+
+        support = ctk.CTkFrame(panel, fg_color="transparent")
+        support.grid(row=8, column=0, sticky="ew", padx=pad, pady=(0, 2))
+        support.grid_columnconfigure(1, weight=1)
+        cup = render_coffee_icon(parse_hex(COFFEE), 17)
+        self._coffee_icon = ctk.CTkImage(light_image=cup, dark_image=cup, size=(17, 17))
+        self.coffee_button = ctk.CTkButton(
+            support, text="  Buy me a coffee", height=34, corner_radius=10,
+            image=self._coffee_icon, compound="left",
+            fg_color="transparent", hover_color=COFFEE_HOVER,
+            border_width=1, border_color=COFFEE,
+            text_color=COFFEE, font=ctk.CTkFont(size=12, weight="bold"),
+            command=self._open_donate,
+        )
+        self.coffee_button.grid(row=0, column=0, sticky="w")
+
+        divider = ctk.CTkFrame(panel, fg_color=BORDER, height=1)
+        divider.grid(row=9, column=0, sticky="ew", padx=pad, pady=(14, 0))
+
         footer = ctk.CTkFrame(panel, fg_color="transparent")
-        footer.grid(row=8, column=0, sticky="ew", padx=pad, pady=(0, 20))
+        footer.grid(row=10, column=0, sticky="ew", padx=pad, pady=(10, 18))
         footer.grid_columnconfigure(0, weight=1)
         self.device_label = ctk.CTkLabel(footer, text="", font=ctk.CTkFont(size=11),
                                          text_color=MUTED)
@@ -263,6 +290,13 @@ class App(ctk.CTk):
     def _on_brightness(self, value: float) -> None:
         self.brightness = int(round(value))
         self.brightness_label.configure(text=f"{self.brightness} / {device.MAX_BRIGHTNESS}")
+
+    def _open_donate(self) -> None:
+        try:
+            webbrowser.open_new_tab(DONATE_URL)
+            self._set_message("Opened PayPal in your browser. Thank you!")
+        except Exception as error:
+            self._set_message(f"Could not open the browser: {error}", error=True)
 
     def _pick_colour(self) -> None:
         chosen = colorchooser.askcolor(color=to_hex(self.colour), title="Choose a colour")
