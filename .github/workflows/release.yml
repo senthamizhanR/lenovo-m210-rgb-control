@@ -1,0 +1,68 @@
+name: Release
+
+# Pushing a version tag builds the executable on a clean Windows runner and
+# attaches it to a GitHub Release, so downloads never depend on a binary that
+# happened to be committed from someone's laptop.
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build executable
+        shell: pwsh
+        run: |
+          # Locate customtkinter rather than hardcoding a site-packages path,
+          # which differs between the runner and a local virtual environment.
+          $ctk = python -c "import customtkinter, os; print(os.path.dirname(customtkinter.__file__))"
+          Write-Host "customtkinter: $ctk"
+          pyinstaller --noconfirm --clean --onefile --windowed `
+            --name "M210-RGB" `
+            --icon icon.ico `
+            --add-data "$ctk;customtkinter" `
+            --add-data "icon.ico;." `
+            --add-data "mouse.png;." `
+            main.py
+
+      - name: Verify the build
+        shell: pwsh
+        run: |
+          $exe = "dist/M210-RGB.exe"
+          if (-not (Test-Path $exe)) { throw "build produced no executable" }
+          $mb = [math]::Round((Get-Item $exe).Length / 1MB, 1)
+          Write-Host "built $exe ($mb MB)"
+          # A clean runner should land near 21 MB. A much larger binary means
+          # PyInstaller swept in a scientific stack it should not have.
+          if ($mb -gt 60) { throw "executable is $mb MB, far larger than expected" }
+
+      - name: Attach to the release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/M210-RGB.exe
+          generate_release_notes: true
+          body: |
+            Portable Windows build. Download `M210-RGB.exe` below and run it -
+            no installer and no Python required.
+
+            Plug the Lenovo M210 in by USB, pick a colour, press **Apply to mouse**.
+            The colour is written to the mouse's own memory, so it survives reboots
+            and follows the mouse to other machines.

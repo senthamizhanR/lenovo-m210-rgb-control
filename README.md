@@ -11,7 +11,7 @@ the device. This project talks to it directly.
 
 ## Download
 
-Grab `release/M210 RGB.exe` and run it. Single portable executable, ~21 MB, no installer and no
+Grab **`M210-RGB.exe`** from the [latest release](https://github.com/senthamizhanR/lenovo-m210-rgb-control/releases/latest) and run it. Single portable executable, ~21 MB, no installer and no
 Python required. Plug the mouse in by USB and the app finds it.
 
 ## What it does
@@ -79,7 +79,7 @@ Writes go through `WRITE_CONFIG` (`0x06`) wrapped in `BEGIN_CONFIGURE` / `END_CO
 python -m venv .venv
 .venv\Scripts\python -m pip install -r requirements.txt
 .venv\Scripts\python -m PyInstaller --noconfirm --clean --onefile --windowed ^
-  --name "M210 RGB" --icon icon.ico ^
+  --name "M210-RGB" --icon icon.ico ^
   --add-data ".venv/Lib/site-packages/customtkinter;customtkinter" ^
   --add-data "icon.ico;." --add-data "mouse.png;." main.py
 ```
